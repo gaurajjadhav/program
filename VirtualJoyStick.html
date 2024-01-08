@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Joystick</title>
+    <style>
+        canvas {
+            border: 2px solid #333;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="joystickCanvas" width="200" height="200"></canvas>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const canvas = document.getElementById('joystickCanvas');
+            const context = canvas.getContext('2d');
+
+            const joystick = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 20,
+                isDragging: false
+            };
+
+            function drawJoystick() {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw joystick base
+                context.beginPath();
+                context.arc(canvas.width / 2, canvas.height / 2, 50, 0, 2 * Math.PI);
+                context.stroke();
+
+                // Draw joystick handle
+                context.beginPath();
+                context.arc(joystick.x, joystick.y, joystick.radius, 0, 2 * Math.PI);
+                context.fill();
+                context.stroke();
+            }
+
+            function handleMouseDown(event) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                const distance = Math.sqrt((joystick.x - mouseX) ** 2 + (joystick.y - mouseY) ** 2);
+
+                if (distance <= joystick.radius) {
+                    joystick.isDragging = true;
+                }
+            }
+
+            function handleMouseMove(event) {
+                if (joystick.isDragging) {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = event.clientX - rect.left;
+                    const mouseY = event.clientY - rect.top;
+
+                    // Keep the joystick handle within the joystick base
+                    const distance = Math.sqrt((mouseX - canvas.width / 2) ** 2 + (mouseY - canvas.height / 2) ** 2);
+                    if (distance <= 50) {
+                        joystick.x = mouseX;
+                        joystick.y = mouseY;
+                    } else {
+                        const angle = Math.atan2(mouseY - canvas.height / 2, mouseX - canvas.width / 2);
+                        joystick.x = canvas.width / 2 + 50 * Math.cos(angle);
+                        joystick.y = canvas.height / 2 + 50 * Math.sin(angle);
+                    }
+
+                    drawJoystick();
+                }
+            }
+
+            function handleMouseUp() {
+                joystick.isDragging = false;
+                // Reset the joystick handle to the center
+                joystick.x = canvas.width / 2;
+                joystick.y = canvas.height / 2;
+                drawJoystick();
+            }
+
+            // Event listeners
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+
+            // Initial draw
+            drawJoystick();
+        });
+    </script>
+</body>
+</html>
